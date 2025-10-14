@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2022-03-28 18:01:24"
+	"lastUpdated": "2025-10-14 12:00:00"
 }
 
 /*
@@ -40,7 +40,7 @@ function detectWeb(doc, url) {
 	if (getSearchResults(doc, true)) {
 		return "multiple";
 	}
-	else if (url.includes('/paper/') && /-Paper\.pdf$|-Abstract\.html$/.test(url)) {
+	else if (url.includes('/paper') && /-Paper(-Conference)?\.pdf$|-Abstract(-Conference)?\.html$/.test(url)) {
 		return "conferencePaper";
 	}
 	return false;
@@ -49,7 +49,7 @@ function detectWeb(doc, url) {
 function scrape(doc, url) {
 	// Unfortunately, the abstract isn't semantically marked at all; this is the best we can do
 	let abstract = ZU.xpathText(doc, '//h4[text()="Abstract"]/following-sibling::p[2]');
-	let pdfURL = attr(doc, 'a[href$="-Paper.pdf"]', 'href');
+	let pdfURL = attr(doc, 'a[href$="-Paper.pdf"], a[href$="-Paper-Conference.pdf"]', 'href');
 	let bibURL = attr(doc, 'a[href$="-Bibtex.bib"], a[href$="/bibtex"]', 'href');
 	if (bibURL) {
 		ZU.doGet(bibURL, function (text) {
@@ -106,10 +106,11 @@ function doWeb(doc, url) {
 			ZU.processDocuments(Object.keys(items), scrape);
 		});
 	}
-	else if (url.endsWith('-Paper.pdf')) {
+	else if (url.endsWith('-Paper.pdf') || url.endsWith('-Paper-Conference.pdf')) {
 		let abstractURL = url
 			.replace('/file/', '/hash/')
-			.replace('-Paper.pdf', '-Abstract.html');
+			.replace('-Paper.pdf', '-Abstract.html')
+			.replace('-Paper-Conference.pdf', '-Abstract-Conference.html');
 		ZU.processDocuments(abstractURL, scrape);
 	}
 	else {
@@ -369,6 +370,29 @@ var testCases = [
 				"publisher": "Curran Associates, Inc.",
 				"url": "https://proceedings.neurips.cc/paper/2021/hash/003dd617c12d444ff9c80f717c3fa982-Abstract.html",
 				"volume": "34",
+				"attachments": [
+					{
+						"title": "Full Text PDF",
+						"mimeType": "application/pdf"
+					}
+				],
+				"tags": [],
+				"notes": [],
+				"seeAlso": []
+			}
+		]
+	},
+	{
+		"type": "web",
+		"url": "https://papers.nips.cc/paper_files/paper/2022/hash/ae6c7dbd9429b3a75c41b5fb47e57c9e-Abstract-Conference.html",
+		"items": [
+			{
+				"itemType": "conferencePaper",
+				"title": "Test case for new NeurIPS URL format",
+				"creators": [],
+				"proceedingsTitle": "Advances in Neural Information Processing Systems",
+				"publisher": "Curran Associates, Inc.",
+				"url": "https://papers.nips.cc/paper_files/paper/2022/hash/ae6c7dbd9429b3a75c41b5fb47e57c9e-Abstract-Conference.html",
 				"attachments": [
 					{
 						"title": "Full Text PDF",
